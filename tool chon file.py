@@ -112,7 +112,7 @@ class MainWindow(QMainWindow):
         not_copied = []# list để lưu tên The file is not copy or move
         m_remain = m_select
         count = 0
-        print(len(m_select))
+        total_file = len(m_select)
         for i in m_select:
             for j in m_list:
                 if i in j:
@@ -124,7 +124,7 @@ class MainWindow(QMainWindow):
                         except:
                             not_copied.append(j) # thêm tên file vào list not_copied nếu không copy được
                             f = open(log_file_path, "a")
-                            f.write(j + " Copy lỗi \n") # copy file lỗi
+                            f.write(j + "Fail to copy \n") # copy file lỗi
                             f.close
                     else:
                         try:
@@ -134,11 +134,11 @@ class MainWindow(QMainWindow):
                         except:
                             not_copied.append(j) # thêm tên file vào list not_copied nếu không move được
                             f = open(log_file_path, "a")
-                            f.write(j +" Di chuyển lỗi \n") # di chuyển file lỗi
+                            f.write(j +"Fail to move \n") # di chuyển file lỗi
                             f.close
                     break 
         if(m_remain):
-            f.write("Các file sau đây không được copy hoặc di chuyển \nNguyên nhân không tìm thấy hoặc bị trùng \n")
+            f.write("The following files cannot be copied or moved \nCause not found or duplicated \n")
             for i in m_remain:
                 f = open(log_file_path, "a")
                 f.write(i + "\n") 
@@ -147,9 +147,9 @@ class MainWindow(QMainWindow):
             self.errLog(f"Các file được chọn không tồn tại trong {dir}")
         else:
             if type is MyType.Copy:
-                self.infoLog(f"Copy {count} file trong tổng số {len(m_select)} đã chọn \nThư mục: {folder_dir} \n Kiểm tra chi tiết trong thư mục log.txt")
+                self.infoLog(f"Copy {count} file trong tổng số {total_file} đã chọn \nThư mục: {folder_dir} \n Kiểm tra chi tiết trong thư mục log.txt")
             else:
-                self.infoLog(f"Di chuyển {count} file trong tổng số {len(m_select)} đã chọn \nThư mục chứa file đã di chuyển: {folder_dir} \n Kiểm tra chi tiết trong thư mục log.txt" )
+                self.infoLog(f"Di chuyển {count} file trong tổng số {total_file} đã chọn \nThư mục chứa file đã di chuyển: {folder_dir} \n Kiểm tra chi tiết trong thư mục log.txt" )
 
 app=QApplication(sys.argv)
 mainwindow=MainWindow()
