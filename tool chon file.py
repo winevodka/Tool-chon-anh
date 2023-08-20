@@ -8,7 +8,7 @@ from PyQt6 import uic, QtWidgets, QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PyQt6.QtCore import QUrl, QDir
 
-VERSION = "1.3.2"
+VERSION = "1.3.3"
 
 class MyType(enum.Enum):
     Copy = 1
