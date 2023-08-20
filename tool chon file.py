@@ -1,17 +1,19 @@
 import sys
-from PyQt6 import uic, QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 import os
-import re
 import shutil
+import glob
 import enum
+import re
+from PyQt6 import uic, QtWidgets, QtCore
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+from PyQt6.QtCore import QUrl, QDir
 
 VERSION = "1.3.2"
 
-class MyType (enum.Enum):
+class MyType(enum.Enum):
     Copy = 1
     Move = 2
-    
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow,self).__init__()
@@ -23,10 +25,9 @@ class MainWindow(QMainWindow):
         self.actionInfo.triggered.connect(self.menu)
         self.btn_Move.clicked.connect(self.Move)
 
-    #browse đến thư mục chứa ảnh gốc
     def browsefiles(self):
-        fname = QFileDialog.getExistingDirectory(self)
-        self.m_url.setText(fname)
+        dir = QFileDialog.getExistingDirectoryUrl(self)
+        self.m_url.setText(dir.toLocalFile())
         self.setComboBox()
 
     def selectFile(self):
@@ -34,33 +35,24 @@ class MainWindow(QMainWindow):
         m_select = re.findall(r'\d+', fileName)
         return m_select
 
-    def getFileExtension(self, m_list):
-        myset = set()
-        for i in m_list:
-            if "." in i:
-                file_extension = i.split(".")[-1]
-                if file_extension not in myset:
-                    myset.add(file_extension)
-        return list(myset)
+    def getFileList(self, m_list):
+        m_extension = self.comboBox.currentText()
+        return glob.glob(os.path.join(m_list, f"*.{m_extension}"))
 
-    def getAllFileList(self):
+    def setComboBox(self):
         dir = self.m_url.text()
         if not dir:
             self.errLog("Vui lòng chọn đường dẫn")
-            return []
-        fileList = os.listdir(dir)
-        return fileList
-
-    def getFileList(self, m_list):
-        m_extension = self.comboBox.currentText()
-        return [i for i in m_list if m_extension in i]
-
-
-    def setComboBox(self):
-        allFile = self.getAllFileList()
-        mlist = self.getFileExtension(allFile)
-        self.comboBox.addItems(mlist)
-
+            return
+        m_list = glob.glob(os.path.join(dir, "*"))
+        m_extension = set()
+        for file in m_list:
+            if os.path.isfile(file):
+                file_extension = os.path.splitext(file)[1][1:]
+                if file_extension:
+                    m_extension.add(file_extension)
+        self.comboBox.clear()
+        self.comboBox.addItems(list(m_extension))
 
     def menu(self):
         dialog = QMessageBox(parent=self)
@@ -68,19 +60,11 @@ class MainWindow(QMainWindow):
         dialog.setWindowTitle("Hỗ trợ")
         dialog.exec()
 
-
     def errLog(self, m_text):
-        dialog = QMessageBox(parent=self)
-        dialog.setText(m_text)
-        dialog.setWindowTitle("Lỗi")
-        dialog.exec()
-
+        QMessageBox.critical(self, "Lỗi", m_text)
 
     def infoLog(self, m_text):
-        dialog = QMessageBox(parent=self)
-        dialog.setText(m_text)
-        dialog.setWindowTitle("Thông tin")
-        dialog.exec()
+        QMessageBox.information(self, "Thông tin", m_text)
 
     def Cancel(self):
         widget.close()
@@ -93,63 +77,61 @@ class MainWindow(QMainWindow):
 
     def filterFile(self, type):
         dir = self.m_url.text()
-        folder_dir = f"{dir} {self.m_newFolder.text()}"
+        folder_dir = os.path.join(dir, self.m_newFolder.text())
         if not os.path.isdir(folder_dir):
             os.mkdir(folder_dir)
 
         log_file_path = os.path.join(folder_dir, "log.txt")
-        # print(log_file_path)
-        f = open(log_file_path, "w")
-        f.write("-------------------------Log file-------------------------\n")
-        f.close
+        with open(log_file_path, "w") as f:
+            f.write("-------------------------Log file-------------------------\n")
 
         m_select = self.selectFile()
         if not m_select:
             self.errLog("Không có file nào được chọn")
             return
-        allFile = self.getAllFileList()
-        m_list = self.getFileList(allFile)
-        not_copied = []# list để lưu tên The file is not copy or move
+        m_list = self.getFileList(dir)
+        not_copied = []
         m_remain = m_select
         count = 0
         total_file = len(m_select)
         for i in m_select:
+            found = False
             for j in m_list:
                 if i in j:
-                    if type is MyType.Copy:
-                        try:
-                            shutil.copyfile(f"{dir}/{j}", f"{folder_dir}/{j}")
-                            count += 1
-                            m_remain.remove(i) # loại bỏ phần tử i ra khỏi m_remain
-                        except:
-                            not_copied.append(j) # thêm tên file vào list not_copied nếu không copy được
-                            f = open(log_file_path, "a")
-                            f.write(j + "Fail to copy \n") # copy file lỗi
-                            f.close
-                    else:
-                        try:
-                            shutil.move(f"{dir}/{j}", f"{folder_dir}/{j}")
-                            count += 1
-                            m_remain.remove(i) # loại bỏ phần tử i ra khỏi m_remain
-                        except:
-                            not_copied.append(j) # thêm tên file vào list not_copied nếu không move được
-                            f = open(log_file_path, "a")
-                            f.write(j +"Fail to move \n") # di chuyển file lỗi
-                            f.close
-                    break 
-        if(m_remain):
-            f.write("The following files cannot be copied or moved \nCause not found or duplicated \n")
-            for i in m_remain:
-                f = open(log_file_path, "a")
-                f.write(i + "\n") 
-                f.close                   
+                    try:
+                        if type is MyType.Copy:
+                            shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
+                        else:
+                            shutil.move(j, os.path.join(folder_dir, os.path.basename(j)))
+                        count += 1
+                        m_remain.remove(i)
+                        found = True
+                    except:
+                        not_copied.append(j)
+                        with open(log_file_path, "a") as f:
+                            if type is MyType.Copy:
+                                f.write(f"{j} - Fail to copy\n")
+                            else:
+                                f.write(f"{j} - Fail to move\n")
+                    break
+            if not found:
+                not_copied.append(i)
+                with open(log_file_path, "a") as f:
+                    f.write(f"{i} - File not found or duplicated\n")
+
+        if not_copied:
+            with open(log_file_path, "a") as f:
+                f.write("The following files cannot be copied or moved\n")
+                for i in not_copied:
+                    f.write(f"{i}\n")
+
         if count == 0:
             self.errLog(f"Các file được chọn không tồn tại trong {dir}")
         else:
             if type is MyType.Copy:
-                self.infoLog(f"Copy {count} file trong tổng số {total_file} đã chọn \nThư mục: {folder_dir} \n Kiểm tra chi tiết trong thư mục log.txt")
+                self.infoLog(f"Copy {count} file trong tổng số {total_file} đã chọn\nThư mục: {folder_dir}\nKiểm tra chi tiết trong thư mục log.txt")
             else:
-                self.infoLog(f"Di chuyển {count} file trong tổng số {total_file} đã chọn \nThư mục chứa file đã di chuyển: {folder_dir} \n Kiểm tra chi tiết trong thư mục log.txt" )
+                self.infoLog(f"Di chuyển {count} file trong tổng số {total_file} đã chọn\nThư mục chứa file đã di chuyển: {folder_dir}\nKiểm tra chi tiết trong thư mục log.txt")
 
 app=QApplication(sys.argv)
 mainwindow=MainWindow()
