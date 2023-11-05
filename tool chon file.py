@@ -8,7 +8,7 @@ from PyQt6 import uic, QtWidgets, QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTabWidget
 from PyQt6.QtCore import QUrl, QDir
 
-VERSION = "1.3.3"
+VERSION = "1.4.0"
 
 class MyType(enum.Enum):
     Copy = 1
@@ -33,6 +33,19 @@ class MainWindow(QMainWindow):
 
     def handle_tabbar_clicked(self, index):
         print("page index: ", index)
+
+    def menu(self):
+        dialog = QMessageBox(parent=self)
+        dialog.setText(f"Công cụ hỗ trợ lọc file phiên bản {VERSION}\nCopyright by Khoa Nguyen")
+        dialog.setWindowTitle("Hỗ trợ")
+        dialog.exec()
+
+    def errLog(self, m_text):
+        QMessageBox.critical(self, "Lỗi", m_text)
+
+    def infoLog(self, m_text):
+        QMessageBox.information(self, "Thông tin", m_text)
+
 # Panel 1 function
     def browsefiles(self):
         dir = QFileDialog.getExistingDirectoryUrl(self)
@@ -62,18 +75,6 @@ class MainWindow(QMainWindow):
                     m_extension.add(file_extension)
         self.comboBox.clear()
         self.comboBox.addItems(list(m_extension))
-
-    def menu(self):
-        dialog = QMessageBox(parent=self)
-        dialog.setText(f"Công cụ hỗ trợ lọc file phiên bản {VERSION}\nCopyright by Khoa Nguyen")
-        dialog.setWindowTitle("Hỗ trợ")
-        dialog.exec()
-
-    def errLog(self, m_text):
-        QMessageBox.critical(self, "Lỗi", m_text)
-
-    def infoLog(self, m_text):
-        QMessageBox.information(self, "Thông tin", m_text)
 
     def Cancel(self):
         widget.close()
@@ -141,8 +142,9 @@ class MainWindow(QMainWindow):
                 self.infoLog(f"Copy {count} file trong tổng số {total_file} đã chọn\nThư mục: {folder_dir}\nKiểm tra chi tiết trong thư mục log.txt")
             else:
                 self.infoLog(f"Di chuyển {count} file trong tổng số {total_file} đã chọn\nThư mục chứa file đã di chuyển: {folder_dir}\nKiểm tra chi tiết trong thư mục log.txt")
+
 # Panel 2 function
-    def get_all_filenames(directory):
+    def get_all_filenames(self, directory):
         filenames = []
         for root, dirs, files in os.walk(directory):
             for file in files:
@@ -167,6 +169,7 @@ class MainWindow(QMainWindow):
         for i in JPG_list_without_extension:
             for j in list_RAW:
                 if i in j:
+                    print("found " ,i , " in ", j)
                     try:
                         shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
                     except:
