@@ -1,52 +1,35 @@
 import sys
 import os
+import re
 import shutil
 import glob
-import enum
-import re
-from PyQt6 import uic, QtWidgets, QtCore
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTabWidget
-from PyQt6.QtCore import QUrl, QDir
+from PyQt6 import QtWidgets
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt6.uic import loadUi
 
-VERSION = "1.4.0"
 
-class MyType(enum.Enum):
+class MyType:
     Copy = 1
     Move = 2
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
-        super(MainWindow,self).__init__()
-        self.setWindowTitle("Tool chọn file " + VERSION)
-        uic.loadUi("gui2.ui",self)
-        self.tabWidget.tabBarClicked.connect(self.handle_tabbar_clicked)
-        #panel 1
-        self.browse.clicked.connect(self.browsefiles)
-        self.btn_Copy.clicked.connect(self.Copy)
-        self.btn_Cancel.clicked.connect(self.Cancel)
-        self.actionInfo.triggered.connect(self.menu)
-        self.btn_Move.clicked.connect(self.Move)
-        #panel 2
-        self.browse_2.clicked.connect(self.browseJPG)
-        self.browse_3.clicked.connect(self.browseRAW)
-        self.btn_OK_2.clicked.connect(self.OK)
+        super(MainWindow, self).__init__()
+        loadUi("gui2.ui", self)
+        self.m_url.setText("")
+        self.m_url_2.setText("")
+        self.m_url_3.setText("")
+        self.m_newFolder.setText("")
+        self.browseButton.clicked.connect(self.browsefiles)
+        self.browseButton_2.clicked.connect(self.browseJPG)
+        self.browseButton_3.clicked.connect(self.browseRAW)
+        self.cancelButton.clicked.connect(self.Cancel)
+        self.copyButton.clicked.connect(self.Copy)
+        self.moveButton.clicked.connect(self.Move)
+        self.okButton.clicked.connect(self.OK)
 
-    def handle_tabbar_clicked(self, index):
-        print("page index: ", index)
-
-    def menu(self):
-        dialog = QMessageBox(parent=self)
-        dialog.setText(f"Công cụ hỗ trợ lọc file phiên bản {VERSION}\nCopyright by Khoa Nguyen")
-        dialog.setWindowTitle("Hỗ trợ")
-        dialog.exec()
-
-    def errLog(self, m_text):
-        QMessageBox.critical(self, "Lỗi", m_text)
-
-    def infoLog(self, m_text):
-        QMessageBox.information(self, "Thông tin", m_text)
-
-# Panel 1 function
+    # Panel 1 function
     def browsefiles(self):
         dir = QFileDialog.getExistingDirectoryUrl(self)
         self.m_url.setText(dir.toLocalFile())
@@ -77,7 +60,7 @@ class MainWindow(QMainWindow):
         self.comboBox.addItems(list(m_extension))
 
     def Cancel(self):
-        widget.close()
+        self.close()
 
     def Copy(self):
         self.filterFile(MyType.Copy)
@@ -143,14 +126,14 @@ class MainWindow(QMainWindow):
             else:
                 self.infoLog(f"Di chuyển {count} file trong tổng số {total_file} đã chọn\nThư mục chứa file đã di chuyển: {folder_dir}\nKiểm tra chi tiết trong thư mục log.txt")
 
-# Panel 2 function
+    # Panel 2 function
     def get_all_filenames(self, directory):
         filenames = []
         for root, dirs, files in os.walk(directory):
             for file in files:
                 filenames.append(file)
         return filenames
-    
+
     def browseJPG(self):
         dir = QFileDialog.getExistingDirectoryUrl(self)
         self.m_url_2.setText(dir.toLocalFile())
@@ -158,7 +141,7 @@ class MainWindow(QMainWindow):
     def browseRAW(self):
         dir = QFileDialog.getExistingDirectoryUrl(self)
         self.m_url_3.setText(dir.toLocalFile())
-    
+
     def OK(self):
         dir_JPG = self.m_url_2.text()
         dir_RAW = self.m_url_3.text()
@@ -169,18 +152,18 @@ class MainWindow(QMainWindow):
         for i in JPG_list_without_extension:
             for j in list_RAW:
                 if i in j:
-                    print("found " ,i , " in ", j)
                     try:
                         shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
                     except:
                         print("fail to copy ", i)
-        
-    
-app=QApplication(sys.argv)
-mainwindow=MainWindow()
-widget=QtWidgets.QStackedWidget()
-widget.addWidget(mainwindow)
-widget.setFixedWidth(650)
-widget.setFixedHeight(550)
-widget.show()
-sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    mainwindow = MainWindow()
+    widget = QtWidgets.QStackedWidget()
+    widget.addWidget(mainwindow)
+    widget.setFixedWidth(650)
+    widget.setFixedHeight(550)
+    widget.show()
+    sys.exit(app.exec())
