@@ -162,18 +162,21 @@ class MainWindow(QMainWindow):
     def OK(self):
         dir_JPG = self.m_url_2.text()
         dir_RAW = self.m_url_3.text()
+        list_RAW_absolute = os.path.abspath(dir_RAW)
         list_JPG = self.get_all_filenames(dir_JPG)
         list_RAW = self.get_all_filenames(dir_RAW)
-        folder_dir = os.path.join(dir_RAW, self.m_newFolder.text())
+        folder_dir = os.path.join(list_RAW_absolute, self.m_newFolder_2.text())
+        if not os.path.isdir(folder_dir):
+            os.mkdir(folder_dir)
         JPG_list_without_extension = [os.path.splitext(file)[0]for file in list_JPG]
         for i in JPG_list_without_extension:
             for j in list_RAW:
                 if i in j:
-                    print("found " ,i , " in ", j)
+                    print("source " ,os.path.join(list_RAW_absolute, os.path.basename(j)) , " des ", os.path.join(folder_dir, os.path.basename(j)))
                     try:
-                        shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
+                        shutil.copyfile(os.path.join(list_RAW_absolute, os.path.basename(j)), os.path.join(folder_dir, os.path.basename(j)))
                     except:
-                        print("fail to copy ", i)
+                        print("fail to copy ", j)
         
     
 app=QApplication(sys.argv)
