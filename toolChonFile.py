@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         super(MainWindow,self).__init__()
         self.setWindowTitle("Tool chọn file " + VERSION)
         uic.loadUi("gui2.ui",self)
-        self.tabWidget.tabBarClicked.connect(self.handle_tabbar_clicked)
+        # self.tabWidget.tabBarClicked.connect(self.handle_tabbar_clicked)
         #panel 1
         self.browse.clicked.connect(self.browsefiles)
         self.btn_Copy.clicked.connect(self.Copy)
@@ -31,8 +31,8 @@ class MainWindow(QMainWindow):
         self.browse_3.clicked.connect(self.browseRAW)
         self.btn_OK_2.clicked.connect(self.OK)
 
-    def handle_tabbar_clicked(self, index):
-        print("page index: ", index)
+    # def handle_tabbar_clicked(self, index):
+        # print("page index: ", index)
 
     def menu(self):
         dialog = QMessageBox(parent=self)
@@ -101,27 +101,36 @@ class MainWindow(QMainWindow):
             return
         m_list = self.getFileList(dir)
         for i in m_select:
+            found = False
+            count = 0
             for j in m_list:
                 if i in j:
-                    try:
-                        if type == MyType.Copy:
-                            shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
-                        else:
-                            shutil.move(j, os.path.join(folder_dir, os.path.basename(j)))
-                        m_list.remove(j)
-                    except Exception as e:
+                    found = True
+                    break
+            if found:
+                count += 1
+                try:
+                    if type == MyType.Copy:
+                        shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
                         with open(log_file_path, "a") as f:
-                            if type == MyType.Copy:
-                                f.write(f"{j} - Fail to copy: {str(e)}\n")
-                            else:
-                                f.write(f"{j} - Fail to move: {str(e)}\n")
-                else:
+                            f.write(f"{j} - Success \n")
+                    else:
+                        shutil.move(j, os.path.join(folder_dir, os.path.basename(j)))
+                        with open(log_file_path, "a") as f:
+                            f.write(f"{j} - Success \n")
+                except Exception as e:
                     with open(log_file_path, "a") as f:
-                        f.write(f"{i} - Not found or Duplicate \n")
+                        if type == MyType.Copy:
+                            f.write(f"{j} - Fail to copy: {str(e)}\n")
+                        else:
+                            f.write(f"{j} - Fail to move: {str(e)}\n")
+            else:
+                with open(log_file_path, "a") as f:
+                    f.write(f"{i} - Not found or Duplicate \n")
         if type == MyType.Copy:
-            self.infoLog(f"Copy hoàn tất\nThư mục: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
+            self.infoLog(f"Copy hoàn tất {count} / {len(m_select)}\nThư mục: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
         else:
-            self.infoLog(f"Di chuyển hoàn tất\nThư mục chứa file đã di chuyển: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
+            self.infoLog(f"Di chuyển hoàn tất {count} / {len(m_select)}\nThư mục chứa file đã di chuyển: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
 
 # Panel 2 function
     def get_all_filenames(self, directory):
@@ -157,18 +166,25 @@ class MainWindow(QMainWindow):
         with open(log_file_path, "w") as f:
             f.write("-------------------------Panel 2-------------------------\n")
         for i in JPG_list_without_extension:
+            found = False
+            count = 0
             for j in list_RAW:
                 if i in j:
-                    try:
-                        shutil.copyfile(os.path.join(list_RAW_absolute, os.path.basename(j)), os.path.join(folder_dir, os.path.basename(j)))
-                    except Exception as e:
-                        with open(log_file_path, "a") as f:
-                            f.write(f"{j} - Fail {str(e)} \n")
-                else:
+                    found = True
+            if found:
+                count += 1
+                try:
+                    shutil.copyfile(os.path.join(list_RAW_absolute, os.path.basename(j)), os.path.join(folder_dir, os.path.basename(j)))
                     with open(log_file_path, "a") as f:
-                        f.write(f"{i} - Not found or Duplicate \n")
+                        f.write(f"{j} - Success \n")
+                except Exception as e:
+                    with open(log_file_path, "a") as f:
+                        f.write(f"{j} - Fail {str(e)} \n")
+            else:
+                with open(log_file_path, "a") as f:
+                    f.write(f"{i} - Not found or Duplicate \n")
 
-        self.infoLog(f"Hoàn thành\nThư mục: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
+        self.infoLog(f"Hoàn thành {count} / {len(list_JPG)} trong tổng số {len(list_RAW)} files\nThư mục: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
     
 app=QApplication(sys.argv)
 mainwindow=MainWindow()
