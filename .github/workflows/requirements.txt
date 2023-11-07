@@ -1,0 +1,17 @@
+altgraph==0.17.2
+future==0.18.2
+ldap3==2.9.1
+packaging==23.0
+pefile==2021.9.3
+Pillow==9.4.0
+pyasn1==0.4.8
+pydirectory==0.1.15
+pyinstaller==5.0
+pyinstaller-hooks-contrib==2022.4
+pynput==1.7.6
+PyQt6==6.4.2
+PyQt6-Qt6==6.4.2
+PyQt6-sip==13.4.1
+pytesseract==0.3.10
+pywin32-ctypes==0.2.0
+six==1.16.0
