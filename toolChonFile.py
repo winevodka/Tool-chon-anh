@@ -8,7 +8,7 @@ from PyQt6 import uic, QtWidgets, QtCore
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QTabWidget
 from PyQt6.QtCore import QUrl, QDir
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 
 class MyType(enum.Enum):
     Copy = 1
@@ -100,9 +100,9 @@ class MainWindow(QMainWindow):
             self.errLog("Không có file nào được chọn")
             return
         m_list = self.getFileList(dir)
+        count = 0
         for i in m_select:
             found = False
-            count = 0
             for j in m_list:
                 if i in j:
                     found = True
@@ -165,9 +165,9 @@ class MainWindow(QMainWindow):
         log_file_path = os.path.join(folder_dir, "log.txt")
         with open(log_file_path, "w") as f:
             f.write("-------------------------Panel 2-------------------------\n")
+        count = 0
         for i in JPG_list_without_extension:
             found = False
-            count = 0
             for j in list_RAW:
                 if i in j:
                     found = True
