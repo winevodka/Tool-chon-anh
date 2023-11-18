@@ -106,27 +106,26 @@ class MainWindow(QMainWindow):
             for j in m_list:
                 if i in j:
                     found = True
-                    break
-            if found:
-                count += 1
-                try:
-                    if type == MyType.Copy:
-                        shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
-                        with open(log_file_path, "a") as f:
-                            f.write(f"{j} - Success \n")
-                    else:
-                        shutil.move(j, os.path.join(folder_dir, os.path.basename(j)))
-                        with open(log_file_path, "a") as f:
-                            f.write(f"{j} - Success \n")
-                except Exception as e:
-                    with open(log_file_path, "a") as f:
+                    try:
                         if type == MyType.Copy:
-                            f.write(f"{j} - Fail to copy: {str(e)}\n")
+                            shutil.copyfile(j, os.path.join(folder_dir, os.path.basename(j)))
                         else:
-                            f.write(f"{j} - Fail to move: {str(e)}\n")
-            else:
+                            shutil.move(j, os.path.join(folder_dir, os.path.basename(j)))
+                        with open(log_file_path, "a") as f:
+                            f.write(f"{j} - Success \n")
+                    except Exception as e:
+                        with open(log_file_path, "a") as f:
+                            if type == MyType.Copy:
+                                f.write(f"{j} - Fail to copy: {str(e)}\n")
+                            else:
+                                f.write(f"{j} - Fail to move: {str(e)}\n")
+                    break
+            if not found:
                 with open(log_file_path, "a") as f:
                     f.write(f"{i} - Not found or Duplicate \n")
+            else:
+                count += 1
+
         if type == MyType.Copy:
             self.infoLog(f"Copy hoàn tất {count} / {len(m_select)}\nThư mục: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
         else:
@@ -171,18 +170,19 @@ class MainWindow(QMainWindow):
             for j in list_RAW:
                 if i in j:
                     found = True
-            if found:
-                count += 1
-                try:
-                    shutil.copyfile(os.path.join(list_RAW_absolute, os.path.basename(j)), os.path.join(folder_dir, os.path.basename(j)))
-                    with open(log_file_path, "a") as f:
-                        f.write(f"{j} - Success \n")
-                except Exception as e:
-                    with open(log_file_path, "a") as f:
-                        f.write(f"{j} - Fail {str(e)} \n")
-            else:
+                    try:
+                        shutil.copyfile(os.path.join(list_RAW_absolute, os.path.basename(j)), os.path.join(folder_dir, os.path.basename(j)))
+                        with open(log_file_path, "a") as f:
+                            f.write(f"{j} - Success \n")
+                    except Exception as e:    
+                        with open(log_file_path, "a") as f:
+                            f.write(f"{j} - Fail {str(e)} \n")
+                    break
+            if not found:
                 with open(log_file_path, "a") as f:
                     f.write(f"{i} - Not found or Duplicate \n")
+            else:
+                count += 1
 
         self.infoLog(f"Hoàn thành {count} / {len(list_JPG)} trong tổng số {len(list_RAW)} files\nThư mục: {folder_dir}\nKiểm tra chi tiết trong tệp log.txt")
     
