@@ -37,19 +37,19 @@ jobs:
     - name: Build exe (Windows)
       if: runner.os == 'Windows'
       run: |
-        pyinstaller --onefile --noconsole --name toolChonFile --add-data "gui2.ui;." --collect-all PyQt6 toolChonFile.py
+        pyinstaller --onedir --noconsole --name toolChonFile --add-data "gui2.ui;." toolChonFile.py
 
     - name: Build app (macOS)
       if: runner.os == 'macOS'
       run: |
-        pyinstaller --onefile --windowed --name toolChonFile --add-data "gui2.ui:." --collect-all PyQt6 toolChonFile.py
+        pyinstaller --onedir --windowed --name toolChonFile --add-data "gui2.ui:." toolChonFile.py
 
     - name: Upload artifact (Windows)
       if: runner.os == 'Windows'
       uses: actions/upload-artifact@v4
       with:
         name: toolChonFile-windows
-        path: dist/toolChonFile.exe
+        path: dist/toolChonFile/
 
     - name: Upload artifact (macOS)
       if: runner.os == 'macOS'
